@@ -35,9 +35,10 @@ frontend/
 项目根目录提供 Windows 与 Linux/macOS 一键启动脚本，自动创建虚拟环境、安装依赖、
 启动服务并打开浏览器：
 
-```bash
-# Windows（cmd / PowerShell）
-start.bat
+```text
+# Windows（PowerShell）
+powershell -ExecutionPolicy Bypass -File start.ps1
+#   或在资源管理器中右键 start.ps1 -> "使用 PowerShell 运行"
 
 # Linux / macOS
 ./start.sh
@@ -75,8 +76,8 @@ python -m venv .venv        # Linux 上若 python 未指向 Python 3，改用 py
 ```bash
 # Linux
 CVE_REPORTS_DIR=/path/to/CVE-Reports CVE_FRONT_PORT=9000 .venv/bin/python frontend/server.py
-# Windows (cmd)
-set CVE_REPORTS_DIR=D:\path\to\CVE-Reports && set CVE_FRONT_PORT=9000 && .venv\Scripts\python frontend\server.py
+# Windows (PowerShell)
+$env:CVE_REPORTS_DIR='D:\path\to\CVE-Reports'; $env:CVE_FRONT_PORT=9000; .venv\Scripts\python frontend\server.py
 ```
 
 ## API
