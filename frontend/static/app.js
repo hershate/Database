@@ -47,6 +47,19 @@ document.addEventListener('keydown', function (e) {
   }
 });
 
+/* ========== 主题（浅色 / 深色） ========== */
+function _applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  var btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = theme === 'light' ? '🌙' : '☀️';
+}
+function toggleTheme() {
+  var cur = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+  var next = cur === 'light' ? 'dark' : 'light';
+  try { localStorage.setItem('cve-theme', next); } catch (e) {}
+  _applyTheme(next);
+}
+
 /* ========== CVE 漏洞情报库 ========== */
 let _cveDbPage = 1, _cveDbPerPage = 15, _cveDbTotal = 0, _cveGrandTotal = 0;
 let _cveDbYearsPopulated = false, _cveDbTypesPopulated = false, _cveDbSoftwarePopulated = false;
@@ -276,41 +289,25 @@ async function cveCopyId() {
   catch (e) { showToast('复制失败，请手动选择', 'error'); }
 }
 
+function _stripFrontmatter(md) {
+  if (!md) return '';
+  // 去除开头的 YAML frontmatter（--- ... ---），不向用户展示元数据
+  var m = /^\s*---\r?\n[\s\S]*?\r?\n---\r?\n?/.exec(md);
+  return m ? md.slice(m[0].length) : md;
+}
+
 async function cveDetail(cveId) {
   var title = document.getElementById('cveDetailTitle');
-  var meta = document.getElementById('cveDetailMeta');
   var rep = document.getElementById('cveDetailReport');
   if (title) title.textContent = cveId + ' 详情';
   var copyBtn = document.getElementById('cveCopyIdBtn'); if (copyBtn) copyBtn.style.display = '';
-  if (meta) meta.innerHTML = '<span style="color:var(--text-muted);">加载中…</span>';
-  if (rep) rep.innerHTML = '';
+  if (rep) rep.innerHTML = '<span style="color:var(--text-muted);">加载中…</span>';
   modalOpen('cveDetailModal');
   // URL hash 深链：#CVE-YYYY-NNNN 可分享、刷新保持
   if (location.hash !== '#' + cveId) history.replaceState(null, '', '#' + cveId);
-  var d; try { d = await api('/cve/' + encodeURIComponent(cveId)); } catch (e) { if (meta) meta.innerHTML = '<span style="color:var(--accent-red);">✗ ' + escapeHtml(e.message) + '</span>'; return; }
-  if (meta) meta.innerHTML = _cveDetailMetaHtml(d);
-  if (rep) rep.innerHTML = d.report ? renderMarkdown(d.report) : '<span style="color:var(--text-muted);">该条目暂无 report.md（仅索引元数据）</span>';
-}
-
-function _cveDetailMetaHtml(d) {
-  var rows = [
-    ['CVE ID', escapeHtml(d.cve_id || '-')],
-    ['严重程度', '<span class="status-tag ' + _cveSevClass(d.severity) + '" style="font-size:.62rem;">' + escapeHtml(d.severity || 'UNKNOWN') + '</span>'],
-    ['CVSS', '<span class="cvss ' + _cveCvssClass(d.cvss_score) + '">' + (d.cvss_score == null ? '-' : escapeHtml(d.cvss_score)) + '</span>'],
-    ['年份', escapeHtml(d.year || '-')],
-    ['CWE', (d.cwe || []).map(function (c) { return '<span class="status-tag queued" style="font-size:.6rem;">' + escapeHtml(c) + '</span>'; }).join(' ') || '-'],
-    ['漏洞类型', (d.vuln_type || []).map(function (t) { return '<span class="status-tag queued" style="font-size:.6rem;">' + escapeHtml(t) + '</span>'; }).join(' ') || '-'],
-    ['受影响组件', escapeHtml(d.affected_component || '-')],
-    ['PoC', d.has_poc ? '<span class="status-tag high" style="font-size:.6rem;">有 PoC</span>' : '<span class="status-tag low" style="font-size:.6rem;">无 PoC</span>'],
-    ['缓解', d.has_mitigation ? '<span class="status-tag completed" style="font-size:.6rem;">有缓解</span>' : '<span class="status-tag low" style="font-size:.6rem;">无</span>'],
-    ['来源数', escapeHtml(d.source_count || 0)],
-    ['收集日期', escapeHtml(d.collection_date || '-')],
-    ['标签', (d.tags || []).map(function (t) { return '<span class="status-tag queued" style="font-size:.58rem;">' + escapeHtml(t) + '</span>'; }).join(' ') || '-'],
-    ['报告路径', d.report_path ? '<code style="font-family:var(--font-code);font-size:.72rem;word-break:break-all;">' + escapeHtml(d.report_path) + '</code>' : '-'],
-  ];
-  return '<div class="detail-grid">' + rows.map(function (r) {
-    return '<div class="detail-row"><span class="detail-key">' + r[0] + '</span><span class="detail-val">' + r[1] + '</span></div>';
-  }).join('') + '</div><div style="margin:10px 0 4px;font-size:var(--fs-small);color:var(--text-muted);">摘要</div><div style="font-size:var(--fs-small);color:var(--text-secondary);line-height:1.6;">' + escapeHtml(d.summary || '-') + '</div>';
+  var d; try { d = await api('/cve/' + encodeURIComponent(cveId)); } catch (e) { if (rep) rep.innerHTML = '<span style="color:var(--accent-red);">✗ ' + escapeHtml(e.message) + '</span>'; return; }
+  // 仅展示报告正文（剔除 frontmatter 元数据）
+  if (rep) rep.innerHTML = d.report ? renderMarkdown(_stripFrontmatter(d.report)) : '<span style="color:var(--text-muted);">该条目暂无 report.md</span>';
 }
 
 /* -- 极简 Markdown 渲染（标题/表格/列表/代码块/加粗/行内代码/链接） -- */
@@ -356,6 +353,12 @@ function renderMarkdown(md) {
     if (hm) { var lv = hm[1].length; var sizes = ['1.1rem', '1.05rem', '.98rem', '.9rem', '.85rem', '.8rem']; html += '<h' + lv + ' style="margin:12px 0 6px;font-family:var(--font-display);font-weight:600;color:var(--text-primary);font-size:' + sizes[lv - 1] + ';">' + inline(hm[2]) + '</h' + lv + '>'; i++; continue; }
     // 水平线
     if (/^\s*([-*_])\1{2,}\s*$/.test(ln)) { html += '<hr style="border:none;border-top:1px solid var(--border);margin:12px 0;" />'; i++; continue; }
+    // 引用块
+    if (/^>\s?/.test(ln)) {
+      var bq = []; while (i < lines.length && /^>\s?/.test(lines[i])) { bq.push(lines[i].replace(/^>\s?/, '')); i++; }
+      html += '<blockquote style="margin:6px 0;padding:6px 12px;border-left:3px solid var(--accent-blue);background:var(--bg-elevated);border-radius:0 6px 6px 0;color:var(--text-secondary);">' + bq.map(function (x) { return '<p style="margin:2px 0;">' + inline(x) + '</p>'; }).join('') + '</blockquote>';
+      continue;
+    }
     // 无序列表
     if (/^\s*[-*+]\s+/.test(ln)) {
       var items = []; while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) { items.push(lines[i].replace(/^\s*[-*+]\s+/, '')); i++; }
@@ -380,6 +383,7 @@ function renderMarkdown(md) {
 
 /* ========== 启动 ========== */
 document.addEventListener('DOMContentLoaded', function () {
+  _applyTheme(document.documentElement.dataset.theme || 'dark');  // 同步主题按钮图标
   loadIntel();
   // URL hash 深链：#CVE-YYYY-NNNN 直接打开详情
   var m = /^#(CVE-\d{4}-\d{4,})$/i.exec(location.hash);

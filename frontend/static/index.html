@@ -3,11 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
 <title>CVE 漏洞库查询</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%232b7ad6'/><text x='50' y='70' font-size='42' text-anchor='middle' fill='white' font-family='sans-serif'>C</text></svg>">
 <!-- 本地字体（离线可用，零外部依赖） -->
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/style.css">
+<script>
+  // 尽早设置主题，避免刷新时闪烁（FOUC）
+  (function () {
+    try {
+      var s = localStorage.getItem('cve-theme');
+      var t = s || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.dataset.theme = t;
+    } catch (e) { document.documentElement.dataset.theme = 'dark'; }
+  })();
+</script>
 </head>
 <body>
 <div class="app">
@@ -17,7 +28,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       <span>CVE 漏洞库查询</span>
     </div>
-    <span id="cveDbNote" class="topbar-note">-</span>
+    <div class="topbar-actions">
+      <span id="cveDbNote" class="topbar-note">-</span>
+      <button id="themeToggle" class="btn btn-sm theme-toggle" onclick="toggleTheme()" title="切换浅色/深色主题">☀️</button>
+    </div>
   </header>
 
   <!-- ========== 主体 ========== -->
@@ -75,26 +89,30 @@
         </div>
       </div>
       <!-- 搜索 / 筛选 -->
-      <div class="search-row">
-        <input id="cveSearchQ" type="text" placeholder="关键词：CVE ID / 组件 / 摘要 / 类型（按 / 聚焦）" onkeydown="if(event.key==='Enter')cveDbSearch(1)" />
-        <select id="cveSearchSev" title="严重程度" onchange="cveDbSearch(1)">
-          <option value="">全部严重程度</option>
-          <option value="CRITICAL">CRITICAL</option>
-          <option value="HIGH">HIGH</option>
-          <option value="MEDIUM">MEDIUM</option>
-          <option value="LOW">LOW</option>
-          <option value="UNKNOWN">UNKNOWN</option>
-        </select>
-        <select id="cveSearchYear" title="年份" onchange="cveDbSearch(1)">
-          <option value="">全部年份</option>
-        </select>
-        <select id="cveSearchType" title="漏洞类型" onchange="cveDbSearch(1)">
-          <option value="">全部类型</option>
-        </select>
-        <input id="cveSearchSoftware" type="text" list="cveSoftwareList" placeholder="受影响组件" onkeydown="if(event.key==='Enter')cveDbSearch(1)" />
-        <datalist id="cveSoftwareList"></datalist>
-        <button class="btn btn-primary btn-sm" onclick="cveDbSearch(1)">搜索</button>
-        <button class="btn btn-sm" onclick="cveClearFilters()" title="清空全部筛选">✕ 清空</button>
+      <div class="filters">
+        <div class="filter-row">
+          <input id="cveSearchQ" type="text" placeholder="关键词：CVE ID / 组件 / 摘要 / 类型（按 / 聚焦）" onkeydown="if(event.key==='Enter')cveDbSearch(1)" />
+          <button class="btn btn-primary btn-sm" onclick="cveDbSearch(1)">搜索</button>
+          <button class="btn btn-sm" onclick="cveClearFilters()" title="清空全部筛选">✕ 清空</button>
+        </div>
+        <div class="filter-row">
+          <select id="cveSearchSev" title="严重程度" onchange="cveDbSearch(1)">
+            <option value="">全部严重程度</option>
+            <option value="CRITICAL">CRITICAL</option>
+            <option value="HIGH">HIGH</option>
+            <option value="MEDIUM">MEDIUM</option>
+            <option value="LOW">LOW</option>
+            <option value="UNKNOWN">UNKNOWN</option>
+          </select>
+          <select id="cveSearchYear" title="年份" onchange="cveDbSearch(1)">
+            <option value="">全部年份</option>
+          </select>
+          <select id="cveSearchType" title="漏洞类型" onchange="cveDbSearch(1)">
+            <option value="">全部类型</option>
+          </select>
+          <input id="cveSearchSoftware" type="text" list="cveSoftwareList" placeholder="受影响组件" onkeydown="if(event.key==='Enter')cveDbSearch(1)" />
+          <datalist id="cveSoftwareList"></datalist>
+        </div>
       </div>
       <div class="table-wrap">
         <table>
@@ -134,7 +152,6 @@
       <div class="modal-title" id="cveDetailTitle">CVE 详情</div>
       <button class="btn btn-sm" id="cveCopyIdBtn" onclick="cveCopyId()" title="复制 CVE ID" style="display:none;">⧉ 复制 ID</button>
     </div>
-    <div id="cveDetailMeta" class="detail-meta"></div>
     <div id="cveDetailReport" class="detail-report"></div>
     <div class="modal-footer">
       <div style="margin-right:auto;display:flex;gap:8px;">

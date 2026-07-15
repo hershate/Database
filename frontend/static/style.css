@@ -1,6 +1,7 @@
 
 /* ========== CSS Variables（与 NullPhase frontend/style.css 一致） ========== */
 :root {
+  color-scheme: dark;
   --bg-deep: oklch(8% 0.012 255);
   --bg-primary: oklch(10.5% 0.015 255);
   --bg-secondary: oklch(14% 0.018 255);
@@ -37,6 +38,31 @@
   --ease-out-expo: cubic-bezier(0.16,1,0.3,1);
 }
 
+/* ========== 浅色主题（data-theme="light"） ========== */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg-deep: oklch(96% 0.005 255);
+  --bg-primary: oklch(98% 0.004 255);
+  --bg-secondary: oklch(94% 0.006 255);
+  --bg-elevated: oklch(90% 0.008 255);
+  --bg-card: oklch(99.5% 0.003 255);
+  --bg-code: oklch(95% 0.005 255);
+  --border: oklch(88% 0.01 255);
+  --border-light: oklch(82% 0.014 255);
+  --text-primary: oklch(22% 0.02 260);
+  --text-secondary: oklch(45% 0.02 260);
+  --text-muted: oklch(52% 0.015 260);
+  --accent-blue: oklch(48% 0.18 255);
+  --accent-blue-hover: oklch(43% 0.2 255);
+  --accent-blue-subtle: oklch(48% 0.18 255 / 0.14);
+  --accent-green: oklch(45% 0.16 145);
+  --accent-green-subtle: oklch(45% 0.16 145 / 0.14);
+  --accent-amber: oklch(55% 0.16 70);
+  --accent-amber-subtle: oklch(55% 0.16 70 / 0.16);
+  --accent-red: oklch(50% 0.2 25);
+  --accent-red-subtle: oklch(50% 0.2 25 / 0.14);
+}
+
 /* ========== 基础重置 ========== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:16px;-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
@@ -55,7 +81,9 @@ button{cursor:pointer;font-family:inherit}
 .topbar{display:flex;align-items:center;gap:14px;padding:18px 0 16px;position:sticky;top:0;z-index:5;background:var(--bg-deep)}
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:1.2rem;letter-spacing:.02em;color:var(--text-primary)}
 .brand svg{width:22px;height:22px;color:var(--accent-blue)}
-.topbar-note{margin-left:auto;font-size:var(--fs-small);color:var(--text-muted)}
+.topbar-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
+.topbar-note{font-size:var(--fs-small);color:var(--text-muted)}
+.theme-toggle{padding:5px 10px;font-size:1.05rem;line-height:1}
 .main{display:flex;flex-direction:column;gap:16px;background:radial-gradient(ellipse at 85% 5%,oklch(55% .12 255 / 0.06) 0%,transparent 60%),radial-gradient(ellipse at 15% 85%,oklch(55% .12 280 / 0.04) 0%,transparent 60%),var(--bg-primary);padding:20px;border-radius:var(--radius-lg);animation:pageIn .35s var(--ease-out-expo) both}
 @keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
@@ -75,10 +103,11 @@ button{cursor:pointer;font-family:inherit}
 .btn-primary:hover{background:var(--accent-blue-hover);border-color:var(--accent-blue-hover)}
 .btn-sm{padding:5px 12px;font-size:var(--fs-small)}
 
-/* ========== 搜索行 / 分页 ========== */
-.search-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
-.search-row input{flex:1;min-width:200px}
-.pager{display:flex;align-items:center;gap:10px;margin-top:10px}
+/* ========== 筛选 / 分页 ========== */
+.filters{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filter-row input,.filter-row select{flex:1;min-width:120px}
+.pager{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
 
 /* ========== 表格 ========== */
 .table-wrap{overflow-x:auto}
@@ -163,18 +192,12 @@ th.sort-desc::after{content:'↓';opacity:1;color:var(--accent-blue)}
 .modal-wide{min-width:680px;max-width:900px}
 .modal-title-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
 .modal-title-row .modal-title{margin-bottom:0}
-.detail-meta{margin-bottom:6px}
-.detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 18px}
-.detail-row{display:flex;gap:8px;font-size:var(--fs-small);align-items:flex-start;padding:5px 0;border-bottom:1px dashed var(--border)}
-.detail-key{width:84px;color:var(--text-muted);flex-shrink:0}
-.detail-val{color:var(--text-primary);flex:1;word-break:break-word}
-.detail-report{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.75;max-height:62vh;overflow:auto;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-top:6px}
+.detail-report{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.75;max-height:64vh;overflow:auto;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-top:6px}
 
 @media(max-width:768px){
   .topbar-note{display:none}
-  .search-row input{min-width:140px}
+  .filter-row input,.filter-row select{min-width:100px}
   .stats-cols{grid-template-columns:1fr}
-  .detail-grid{grid-template-columns:1fr}
   .bar-label{width:96px}
   .modal-wide{min-width:0;max-width:96vw}
 }
