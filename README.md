@@ -10,6 +10,8 @@
 
 所有报告均由 [`cve-lookup`](./cve-lookup/) Skill 从 NVD、MITRE、GitHub Security Advisory、Exploit-DB、CISA KEV、CNNVD/CNVD、厂商安全公告等**公开来源**自动检索并生成，遵循**源驱动原则**——内容必须来自搜索结果，禁止编造或推断，所有引用均附完整链接。
 
+> 本项目使用 [Meta-skill](https://github.com/hershate/Meta-skill) 项目构建。
+
 ## ⚠️ 免责声明
 
 本仓库面向**防御性安全研究、安全教育、授权渗透测试与漏洞修复参考**。报告中包含的漏洞原理、PoC 分析与利用步骤仅供学习与防御用途，**严禁用于未授权的系统攻击或任何违法活动**。完整免责声明见 [DISCLAIMER.md](./DISCLAIMER.md)。
