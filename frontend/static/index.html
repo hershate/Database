@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CVE 漏洞库查询</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%232b7ad6'/><text x='50' y='70' font-size='42' text-anchor='middle' fill='white' font-family='sans-serif'>C</text></svg>">
+<!-- 本地字体（离线可用，零外部依赖） -->
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app">
+  <!-- ========== 顶栏 ========== -->
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>CVE 漏洞库查询</span>
+    </div>
+    <span id="cveDbNote" class="topbar-note">-</span>
+  </header>
+
+  <!-- ========== 主体 ========== -->
+  <main class="main">
+
+    <!-- CVE 数据库统计 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">CVE 数据库概览</div>
+        <span id="cveDbPath" class="topbar-note" style="font-size:var(--fs-small);color:var(--text-muted);"></span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div id="cveDbTotal" class="stat-num">0</div>
+          <div class="stat-label">CVE 总数</div>
+        </div>
+        <div class="stat-box">
+          <div id="cveDbYearCount" class="stat-num">0</div>
+          <div class="stat-label">年份覆盖</div>
+        </div>
+        <div class="stat-box">
+          <div id="cveDbTypeCount" class="stat-num">0</div>
+          <div class="stat-label">漏洞类型</div>
+        </div>
+        <div class="stat-box">
+          <div id="cveDbCompCount" class="stat-num">0</div>
+          <div class="stat-label">受影响组件</div>
+        </div>
+      </div>
+      <div id="cveSevDist" class="stat-tags" style="margin-top:10px;"></div>
+      <div class="stats-cols">
+        <div class="stat-col">
+          <div class="stat-col-title">年份分布</div>
+          <div id="cveYearBars"></div>
+        </div>
+        <div class="stat-col">
+          <div class="stat-col-title">漏洞类型 Top</div>
+          <div id="cveTypeBars"></div>
+        </div>
+        <div class="stat-col">
+          <div class="stat-col-title">受影响组件 Top</div>
+          <div id="cveCompBars"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CVE 列表 / 搜索 / 筛选 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">CVE 漏洞情报库</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span id="cveListNote" style="font-size:var(--fs-small);color:var(--text-muted);">-</span>
+          <button class="btn btn-sm" onclick="cveRebuild()" title="从文件系统重建索引">🔄 重建索引</button>
+          <button class="btn btn-sm" onclick="cveExport()">⬇ 导出</button>
+        </div>
+      </div>
+      <!-- 搜索 / 筛选 -->
+      <div class="search-row">
+        <input id="cveSearchQ" type="text" placeholder="关键词：CVE ID / 组件 / 摘要 / 类型（按 / 聚焦）" onkeydown="if(event.key==='Enter')cveDbSearch(1)" />
+        <select id="cveSearchSev" title="严重程度" onchange="cveDbSearch(1)">
+          <option value="">全部严重程度</option>
+          <option value="CRITICAL">CRITICAL</option>
+          <option value="HIGH">HIGH</option>
+          <option value="MEDIUM">MEDIUM</option>
+          <option value="LOW">LOW</option>
+          <option value="UNKNOWN">UNKNOWN</option>
+        </select>
+        <select id="cveSearchYear" title="年份" onchange="cveDbSearch(1)">
+          <option value="">全部年份</option>
+        </select>
+        <select id="cveSearchType" title="漏洞类型" onchange="cveDbSearch(1)">
+          <option value="">全部类型</option>
+        </select>
+        <input id="cveSearchSoftware" type="text" list="cveSoftwareList" placeholder="受影响组件" onkeydown="if(event.key==='Enter')cveDbSearch(1)" />
+        <datalist id="cveSoftwareList"></datalist>
+        <button class="btn btn-primary btn-sm" onclick="cveDbSearch(1)">搜索</button>
+        <button class="btn btn-sm" onclick="cveClearFilters()" title="清空全部筛选">✕ 清空</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="sortable" data-sort="id_asc" onclick="cveToggleSort('id_asc')">CVE ID</th>
+            <th class="sortable" data-sort="severity_desc" onclick="cveToggleSort('severity_desc')">严重程度</th>
+            <th class="sortable" data-sort="year_desc" onclick="cveToggleSort('year_desc')">年份</th>
+            <th class="sortable" data-sort="cvss_desc" onclick="cveToggleSort('cvss_desc')">CVSS</th>
+            <th>漏洞类型</th>
+            <th>受影响组件</th>
+            <th>摘要</th>
+            <th>操作</th>
+          </tr></thead>
+          <tbody id="cveDbBody"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <span id="cveDbPageInfo" style="font-size:var(--fs-small);color:var(--text-muted);"></span>
+        <span style="flex:1;"></span>
+        <select id="cveDbPageSize" onchange="cveDbSearch(1)" style="font-size:var(--fs-small);" title="每页条数">
+          <option value="15">15/页</option>
+          <option value="30">30/页</option>
+          <option value="50">50/页</option>
+        </select>
+        <button class="btn btn-sm" id="cveDbPrev" onclick="cveDbPage(-1)">‹ 上一页</button>
+        <button class="btn btn-sm" id="cveDbNext" onclick="cveDbPage(1)">下一页 ›</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ========== CVE 详情弹窗 ========== -->
+<div class="modal-overlay" id="cveDetailModal" onclick="if(event.target===this)modalClose('cveDetailModal')">
+  <div class="modal modal-wide">
+    <div class="modal-title-row">
+      <div class="modal-title" id="cveDetailTitle">CVE 详情</div>
+      <button class="btn btn-sm" id="cveCopyIdBtn" onclick="cveCopyId()" title="复制 CVE ID" style="display:none;">⧉ 复制 ID</button>
+    </div>
+    <div id="cveDetailMeta" class="detail-meta"></div>
+    <div id="cveDetailReport" class="detail-report"></div>
+    <div class="modal-footer">
+      <div style="margin-right:auto;display:flex;gap:8px;">
+        <button class="btn btn-sm" onclick="cveDownloadReport()">⬇ 下载报告</button>
+        <button class="btn btn-sm" style="color:var(--accent-red);" onclick="cveDeleteCurrent()">🗑 删除该条目</button>
+      </div>
+      <button class="btn" onclick="modalClose('cveDetailModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- toast 容器 -->
+<div class="toast" id="toast"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>
