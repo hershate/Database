@@ -1,14 +1,30 @@
 # 漏洞数据库 (Vulnerability Database)
 
-> 一个基于公开来源、源驱动构建的 CVE 漏洞深度分析数据库，覆盖 2010–2026 年共 219 条漏洞记录，附带自动生成报告的 Claude Code Skill。
+> 探索一种**离线漏洞信息的自动化获取与整理方式**：自动从多个权威在线情报源爬取 CVE 数据，深度结构化整理后沉淀为本地可离线检索的漏洞数据库，便于离线项目复用此工作流进行数据库的爬取与构建。
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
 
 ## 简介
 
-本仓库是一个**漏洞情报与分析数据库**，收录常见 CVE（Common Vulnerabilities and Exposures）漏洞的深度结构化分析报告。每条记录包含漏洞原理、触发条件、影响范围、PoC 分析（概念性）、修复与防御方案等内容，并附结构化元数据（`metadata.json`）以支持自动化检索与统计。
+本仓库探索一种**离线漏洞信息的自动化获取与整理方式**，旨在为离线 / 内网场景下的漏洞数据库爬取与构建提供一套可复用的自动化工作流。仓库由两部分组成：
 
-所有报告均由 [`cve-lookup`](./cve-lookup/) Skill 从 NVD、MITRE、GitHub Security Advisory、Exploit-DB、CISA KEV、CNNVD/CNVD、厂商安全公告等**公开来源**自动检索并生成，遵循**源驱动原则**——内容必须来自搜索结果，禁止编造或推断，所有引用均附完整链接。
+- **[`CVE-Reports/`](./CVE-Reports/)** - 自动化流程产出的离线漏洞数据库，收录 2010–2026 年共 219 条 CVE 的深度结构化分析报告（漏洞原理、触发条件、影响范围、PoC 分析、修复与防御方案等），每条附 `metadata.json` 支持自动化检索与统计。
+- **[`cve-lookup/`](./cve-lookup/)** - 实现自动化获取与整理的 Claude Code Skill（v3.1.0），负责从多个权威在线情报源爬取 CVE 数据并生成结构化报告，遵循源驱动原则（内容必须来自搜索结果，禁止编造或推断，所有引用附完整链接）。
+
+## 项目定位
+
+本项目的核心不在于提供一份静态数据，而是**探索一种离线漏洞信息的自动化获取与整理方式**。其工作流可概括为：
+
+```
+在线情报源  ──(cve-lookup: 自动爬取 + 结构化整理)──>  离线漏洞数据库
+NVD · MITRE · 厂商公告 · CISA KEV ·                  CVE-Reports/
+Exploit-DB · GitHub Advisory · CNNVD/CNVD …          report.md + metadata.json
+```
+
+- **自动化获取** - 由 [`cve-lookup`](./cve-lookup/) Skill 自动从 NVD、MITRE、GitHub Security Advisory、Exploit-DB、CISA KEV、CNNVD/CNVD、厂商安全公告等公开来源检索 CVE 数据，无需人工逐条查询。
+- **结构化整理** - 每条 CVE 沉淀为深度分析报告（`report.md`）+ 结构化元数据（`metadata.json`），并聚合为集中式索引（`cve-index.json`），支持程序化检索与统计。
+- **离线可用** - 整理后的数据完全沉淀在本地，离线 / 内网环境下无需联网即可检索使用。
+- **工作流可复用** - 离线项目既可直接复用本仓库的数据库，也可借鉴这套自动化获取与整理工作流，爬取并构建属于自己的离线漏洞数据库。
 
 > 本项目使用 [Meta-skill](https://github.com/hershate/Meta-skill) 项目构建。
 
@@ -51,11 +67,11 @@ Database/
 
 ## 核心原则
 
-- **源驱动** — 报告内容必须来自公开搜索结果，禁止编造或推断
-- **引用可溯** — 所有数据点附完整来源链接，便于核查
-- **数据缺失透明化** — 未找到的字段明确标注"暂无数据"及搜索范围
-- **结构化** — 每条 CVE 附 `metadata.json`，支持自动化处理与统计
-- **深度优先** — 以信息完整性和分析深度为最高优先级，无字数限制
+- **源驱动** - 报告内容必须来自公开搜索结果，禁止编造或推断
+- **引用可溯** - 所有数据点附完整来源链接，便于核查
+- **数据缺失透明化** - 未找到的字段明确标注"暂无数据"及搜索范围
+- **结构化** - 每条 CVE 附 `metadata.json`，支持自动化处理与统计
+- **深度优先** - 以信息完整性和分析深度为最高优先级，无字数限制
 
 ## 如何使用
 
@@ -63,9 +79,9 @@ Database/
 
 直接在 [`CVE-Reports/`](./CVE-Reports/) 下按年份/CVE 编号浏览，或查阅：
 
-- [index.md](./CVE-Reports/index.md) — 全量索引与统计
-- [cve-index.json](./CVE-Reports/cve-index.json) — 程序化检索
-- [lookup-table.md](./CVE-Reports/lookup-table.md) — 按漏洞类型/受影响软件快速定位
+- [index.md](./CVE-Reports/index.md) - 全量索引与统计
+- [cve-index.json](./CVE-Reports/cve-index.json) - 程序化检索
+- [lookup-table.md](./CVE-Reports/lookup-table.md) - 按漏洞类型/受影响软件快速定位
 
 ### 使用 Skill 生成新报告
 
@@ -96,7 +112,7 @@ Database/
 
 ## 致谢
 
-- [NVD](https://nvd.nist.gov/) / [MITRE CVE](https://www.cve.org/) — 漏洞编号与基础数据
-- [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) — 在野利用编目
-- [Exploit-DB](https://www.exploit-db.com/) / [GitHub Security Advisory](https://github.com/advisories) — 公开 PoC 与公告
+- [NVD](https://nvd.nist.gov/) / [MITRE CVE](https://www.cve.org/) - 漏洞编号与基础数据
+- [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) - 在野利用编目
+- [Exploit-DB](https://www.exploit-db.com/) / [GitHub Security Advisory](https://github.com/advisories) - 公开 PoC 与公告
 - 各厂商安全公告与开源社区
