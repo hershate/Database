@@ -1,0 +1,4 @@
+# CVE-front 独立漏洞库查询前端依赖
+# 后端仅依赖 fastapi + uvicorn（标准库之外的全部外部依赖）
+fastapi>=0.110
+uvicorn[standard]>=0.27
